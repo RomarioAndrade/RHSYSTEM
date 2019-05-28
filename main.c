@@ -50,12 +50,17 @@ void insert_TreeByName(No **arvoreNome, No *no) {
     }
 }
 
-No *searchByName(No *arvore, char nome[]) {
-    if (arvore == NULL || strcmp(arvore->info->nome, nome) == 0)
+No *searchByName(No *arvore, char nome[]) {    
+    printf("Nó atual: %p | esquerda: %p | info: %s | direita %p \n", arvore, arvore->esquerda,
+            arvore->info->nome, arvore->direita);
+    
+    
+    if (arvore == NULL || strncmp(arvore->info->nome, nome, 50) == 0) {
         return arvore;
-    if (strcmp(arvore->info->nome, nome) > 0)
+    }
+    if (strncmp(arvore->info->nome, nome, 50) < 0) {
         return searchByName(arvore->esquerda, nome);
-    else if (strcmp(arvore->info->nome, nome) < 0) {
+    } else if (strncmp(arvore->info->nome, nome, 50) > 0) {
         return searchByName(arvore->direita, nome);
     }
 }
@@ -78,12 +83,22 @@ void printTree(No* tree) {
     printTree(tree->direita);
 }
 
-void remove_(No **arvore, Info *info, int nameOrCPF) {
+void removeByCPF(No **arvore, int CPF) {
 
-}
+    if (*arvore == NULL) {
 
-No *search_(No **arvore, Info *info, int nameOrCPF) {
-    return *arvore;
+        return;
+    }
+
+    if ((*arvore)->info->cpf < CPF) {
+
+        removeByCPF(&(*arvore)->esquerda, CPF);
+    } else if ((*arvore)->info->cpf > CPF) {
+        printf("Maior");
+        removeByCPF(&(*arvore)->direita, CPF);
+    } else {
+        printf("%d  %s \n", (*arvore)->info->cpf, (*arvore)->info->nome);
+    }
 }
 
 /*
@@ -108,21 +123,43 @@ int main(int argc, char** argv) {
 
     char nome4[50] = "teste 0";
     char profissao4[30] = "teste prof";
-    Info *i4 = factoryInfo(100001, nome4, profissao4);
+    Info *i4 = factoryInfo(000100, nome4, profissao4);
+
+    char nome5[50] = "teste 4";
+    char profissao5[30] = "teste prof";
+    Info *i5 = factoryInfo(444444, nome5, profissao5);
+
+    char nome6[50] = "teste 5";
+    char profissao6[30] = "teste prof";
+    Info *i6 = factoryInfo(333330, nome6, profissao6);
 
     No *n1 = factoryNo(i1);
     No *n2 = factoryNo(i2);
     No *n3 = factoryNo(i3);
     No *n4 = factoryNo(i4);
+    No *n5 = factoryNo(i5);
+    No *n6 = factoryNo(i6);
 
     //printf("%d", n1->info->cpf);
 
-    insert_TreeByName(&arvore, n1);
-    insert_TreeByName(&arvore, n2);
-    insert_TreeByName(&arvore, n3);
-    insert_TreeByName(&arvore, n4);
+    insert_TreeByCPF(&arvore, n1);
+    insert_TreeByCPF(&arvore, n2);
+    insert_TreeByCPF(&arvore, n3);
+    insert_TreeByCPF(&arvore, n4);
+    insert_TreeByCPF(&arvore, n5);
+    insert_TreeByCPF(&arvore, n6);
 
     printTree(arvore);
+    printf("\n\n");
+    
+    No *node = searchByName(arvore, nome2);
+    if (node == NULL) {
+        printf("È null");
+    }
+
+
+    //
+    //removeByCPF(&arvore, 333333);
 
     return (EXIT_SUCCESS);
 }
