@@ -42,29 +42,30 @@ void insert_TreeByCPF(No **arvoreCPF, No *no) {
     }
 }
 
-void insert_TreeByName(No **arvoreNome, No *no) {
-    if (*arvoreNome == NULL) {
-        *arvoreNome = no;
-    } else if (strcmp((*arvoreNome)->info->nome, no->info->nome) > 0) {
-        insert_TreeByName(&(*arvoreNome)->esquerda, no);
-    } else if (strcmp((*arvoreNome)->info->nome, no->info->nome) < 0) {
-        insert_TreeByName(&(*arvoreNome)->direita, no);
+No *insert_TreeByName(No *arvoreNome, No *no) {
+    if (arvoreNome == NULL) {
+        return no;
+    } else if (strcmp(arvoreNome->info->nome, no->info->nome) > 0) {
+        arvoreNome->esquerda = insert_TreeByName(arvoreNome->esquerda, no);
+    } else if (strcmp(arvoreNome->info->nome, no->info->nome) < 0) {
+        arvoreNome->direita = insert_TreeByName(arvoreNome->direita, no);
     }
+    return arvoreNome;
 }
 
 No *searchByName(No *arvore, char nome[]) {
-    printf("Nó atual: %p | esquerda: %p | info: %s | direita %p \n", arvore, arvore->esquerda,
-            arvore->info->nome, arvore->direita);
-
-
-    if (arvore == NULL || strncmp(arvore->info->nome, nome, 50) == 0) {
-        return arvore;
+    if (arvore != NULL) {
+        if (strncmp(arvore->info->nome, nome, 50) > 0) {
+            printf("esquerda\n");
+            arvore = searchByName(arvore->esquerda, nome);
+        } else if (strncmp(arvore->info->nome, nome, 50) < 0) {
+            printf("direita\n");
+            arvore = searchByName(arvore->direita, nome);
+        }else{
+            return arvore;
+        }
     }
-    if (strncmp(arvore->info->nome, nome, 50) < 0) {
-        return searchByName(arvore->esquerda, nome);
-    } else if (strncmp(arvore->info->nome, nome, 50) > 0) {
-        return searchByName(arvore->direita, nome);
-    }
+    
 }
 
 No *searchByCPF(No *arvore, int CPF) {
@@ -101,6 +102,11 @@ void removeByCPF(No **arvore, int CPF) {
     }
 }
 
+void removeByName(No *arvore, char nome[]){
+    
+}
+
+
 /*
  * 
  */
@@ -108,28 +114,28 @@ int main() {
     No *arvoreCPF = NULL;
     No *arvoreNAME = NULL;
 
-    char nome1[50] = "teste 1";
+    char nome1[50] = "Maria";
     char profissao1[30] = "teste prof";
     Info *i1 = factoryInfo(111111, nome1, profissao1);
 
 
-    char nome2[50] = "romario 2";
+    char nome2[50] = "Lucas";
     char profissao2[30] = "teste prof";
     Info *i2 = factoryInfo(222222, nome2, profissao2);
 
-    char nome3[50] = "teste 3";
+    char nome3[50] = "José";
     char profissao3[30] = "teste prof";
     Info *i3 = factoryInfo(333333, nome3, profissao3);
 
-    char nome4[50] = "teste 0";
+    char nome4[50] = "Romário";
     char profissao4[30] = "teste prof";
     Info *i4 = factoryInfo(000100, nome4, profissao4);
 
-    char nome5[50] = "teste 4";
+    char nome5[50] = "teste";
     char profissao5[30] = "teste prof";
     Info *i5 = factoryInfo(444444, nome5, profissao5);
 
-    char nome6[50] = "joao 5";
+    char nome6[50] = "andre";
     char profissao6[30] = "teste prof";
     Info *i6 = factoryInfo(333330, nome6, profissao6);
 
@@ -142,31 +148,36 @@ int main() {
 
     //printf("%d", n1->info->cpf);
 
+    /*
     insert_TreeByCPF(&arvoreCPF, n1);
     insert_TreeByCPF(&arvoreCPF, n2);
     insert_TreeByCPF(&arvoreCPF, n3);
     insert_TreeByCPF(&arvoreCPF, n4);
     insert_TreeByCPF(&arvoreCPF, n5);
-    insert_TreeByCPF(&arvoreCPF, n6);
-    
-    insert_TreeByName(&arvoreNAME, n1);
-    insert_TreeByName(&arvoreNAME, n2);
-    insert_TreeByName(&arvoreNAME, n3);
-    insert_TreeByName(&arvoreNAME, n4);
-    insert_TreeByName(&arvoreNAME, n5);
-    insert_TreeByName(&arvoreNAME, n6);
+    insert_TreeByCPF(&arvoreCPF, n6);*/
 
-    printTree(arvoreCPF);
+    arvoreNAME = insert_TreeByName(arvoreNAME, n1);
+    arvoreNAME = insert_TreeByName(arvoreNAME, n2);
+    arvoreNAME = insert_TreeByName(arvoreNAME, n3);
+    arvoreNAME = insert_TreeByName(arvoreNAME, n4);
+    arvoreNAME = insert_TreeByName(arvoreNAME, n5);
+    arvoreNAME = insert_TreeByName(arvoreNAME, n6);
+
+    //printTree(arvoreCPF);
     printf("\n");
     printTree(arvoreNAME);
-    //No *node = searchByName(arvoreCPF, nome2);
-    //if (node == NULL) {
-    //    printf("È null");
-    //}
 
 
-    //
-    //removeByCPF(&arvore, 333333);
+    char nome7[50] = "tezt";
+
+    No *node = searchByName(arvoreNAME, nome7);
+
+    if (node == NULL) {
+        printf("SIMMMM");
+    } else {
+        printf("Mitsuketa: %s", node->info->nome);
+    }
+
 
     return 0;
 }
