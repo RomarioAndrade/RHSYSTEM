@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <curses.h>
 
 struct info {
     int cpf;
@@ -35,7 +36,7 @@ Info *factoryInfo(int CPF, char nome[], char profissao[]) {
 No *insert_TreeByCPF(No *arvoreCPF, No *no) {
     if (arvoreCPF == NULL) {
         return no;
-    } else if (arvoreCPF->info->cpf > no->info->cpf) {
+    } else if (arvoreCPF->info->cpf > no->info->cpf) { //se o CPF do no for menor insere na esquerda
         arvoreCPF->esquerda = insert_TreeByCPF(arvoreCPF->esquerda, no);
     } else {
         arvoreCPF->direita = insert_TreeByCPF(arvoreCPF->direita, no);
@@ -64,28 +65,29 @@ No *searchByName(No *arvore, char nome[]) {
             return arvore;
         }
     }
-
 }
 
 No *searchByCPF(No *arvore, int CPF) {
-    if (arvore == NULL || arvore->info->cpf == CPF)
-        return arvore;
-    if (arvore->info->cpf > CPF)
-        return searchByCPF(arvore->esquerda, CPF);
-    else
-        return searchByCPF(arvore->direita, CPF);
+    if (arvore != NULL) {
+        if (arvore->info->cpf > CPF) {
+            arvore = searchByCPF(arvore->esquerda, CPF);
+        } else if (arvore->info->cpf < CPF) {
+            arvore = searchByCPF(arvore->direita, CPF);
+        } else {
+            return arvore;
+        }
+    }
 }
 
-void printTree(No *arvore) {
+void printTree(No * arvore) {
     if (arvore == NULL)
         return;
-    printf("Nó atual: %p | esquerda: %p | info: %s | direita %p \n", arvore, arvore->esquerda,
-            arvore->info->nome, arvore->direita);
+    printf("%-15s  %20d  %-15s\n", arvore->info->nome, arvore->info->cpf, arvore->info->profissao);
     printTree(arvore->esquerda);
     printTree(arvore->direita);
 }
 
-No *remove_No(No *no) {
+No * remove_No(No * no) {
     No *no1, *no2;
     if (no->esquerda == NULL) {
         no2 = no->direita;
@@ -108,9 +110,9 @@ No *remove_No(No *no) {
     return no2;
 }
 
-int removeByCPF(No *arvore, int CPF) {
+No * removeByCPF(No *arvore, int CPF) {
     if (arvore == NULL) {
-        return 0;
+        return arvore;
     }
 
     No *ant = NULL;
@@ -119,7 +121,7 @@ int removeByCPF(No *arvore, int CPF) {
     while (atual != NULL) {
         if (CPF == atual->info->cpf) {
             if (atual == arvore) {
-                atual = remove_No(atual);
+                arvore = remove_No(atual);
             } else {
                 if (ant->direita == atual) {
                     ant->direita = remove_No(atual);
@@ -127,7 +129,7 @@ int removeByCPF(No *arvore, int CPF) {
                     ant->esquerda = remove_No(atual);
                 }
             }
-            return 1;
+            return arvore;
         }
         ant = atual;
         if (CPF > atual->info->cpf) {
@@ -136,12 +138,12 @@ int removeByCPF(No *arvore, int CPF) {
             atual = atual->esquerda;
         }
     }
-    return 0;
+    return arvore;
 }
 
-int removeByName(No *arvore, char nome[]) {
+No * removeByName(No *arvore, char nome[]) {
     if (arvore == NULL) {
-        return 0;
+        return arvore;
     }
 
     No *ant = NULL;
@@ -158,7 +160,7 @@ int removeByName(No *arvore, char nome[]) {
                     ant->esquerda = remove_No(atual);
                 }
             }
-            return 1;
+            return arvore;
         }
         ant = atual;
         if (strncmp(atual->info->nome, nome, 50) > 0) {
@@ -167,7 +169,7 @@ int removeByName(No *arvore, char nome[]) {
             atual = atual->esquerda;
         }
     }
-    return 0;
+    return arvore;
 }
 
 /*
@@ -176,78 +178,186 @@ int removeByName(No *arvore, char nome[]) {
 int main() {
     No *arvoreCPF = NULL;
     No *arvoreNAME = NULL;
+    No *node_1 = NULL;
+    No *node_2 = NULL;
+    Info *info1 = NULL;
+    Info *info2 = NULL;
 
-    char nome1[50] = "Maria";
-    char profissao1[30] = "teste prof";
-    Info *i1 = factoryInfo(111111, nome1, profissao1);
+    char nome[50];
+    char profissao[30];
+    char messagens[50] = "";
+    int CPF, option;
+
+    do {
+        system("clear");
+        printf("Sistema de RH versão 0.01\n");
+        printf("=========================\n\n");
+        printf("< 1 > Inserir:\n");
+        printf("< 2 > Remover por nome:\n");
+        printf("< 3 > Remover por CPF:\n");
+        printf("< 4 > Buscar por nome:\n");
+        printf("< 5 > Buscar por CPF:\n");
+        printf("< 6 > Listar:\n");
+        printf("< 0 > Para sair\n\n");
+        printf("Status: %s\n\n", messagens);
+        printf("> ");
+        scanf("%d", &option);
+
+        switch (option) {
+            case 1:
+                system("clear");
+                strcpy(messagens, "");
+                printf("Sistema de RH versão 0.01\n");
+                printf("=========================\n\n");
+                printf("%-10s%2s", "Nome", "> ");
+                scanf("%s", &nome);
+                printf("%-10s%2s", "Cpf", "> ");
+                scanf("%d", &CPF);
+                printf("%-10s%3s", "Profissão", "> ");
+                scanf("%s", &profissao);
+
+                info1 = factoryInfo(CPF, nome, profissao);
+                info2 = factoryInfo(CPF, nome, profissao);
+
+                node_1 = factoryNo(info1);
+                node_2 = factoryNo(info2);
+
+                if (searchByCPF(arvoreCPF, info1->cpf) != NULL || searchByName(arvoreNAME, info2->nome) != NULL) {
+                    system("clear");
+                    printf("Sistema de RH versão 0.01\n");
+                    printf("=========================\n\n");
+                    printf("O Nome ou o CPF já foi cadastrado\n");
+                    printf("\n");
+                    printf("Digite 1 para voltar ao menu:");
+                    scanf("%d", &option);
+                } else {
+                    arvoreCPF = insert_TreeByCPF(arvoreCPF, node_1);
+                    arvoreNAME = insert_TreeByName(arvoreNAME, node_2);
+                    strcpy(messagens, "Funcionario cadastrado com sucesso");
+                }
+                break;
+
+            case 2:
+                system("clear");
+                strcpy(messagens, "");
+                printf("Sistema de RH versão 0.01\n");
+                printf("=========================\n\n");
+                printf("Insira o nome do funcionário a ser removido\n");
+                printf("%-10s%2s", "Nome", "> ");
+                scanf("%s", &nome);
+
+                if (searchByName(arvoreNAME, nome) == NULL) {
+                    system("clear");
+                    printf("Sistema de RH versão 0.01\n");
+                    printf("=========================\n\n");
+                    printf("O funcionario não esta cadastrado\n");
+                    printf("\n");
+                    printf("Digite 1 para voltar ao menu:");
+                    scanf("%d", &option);
+                } else {
+                    arvoreCPF = removeByName(arvoreNAME, nome);
+                    arvoreNAME = removeByName(arvoreCPF, nome);
+                    strcpy(messagens, "Funcionario removido com sucesso");
+                }
 
 
-    char nome2[50] = "Lucas";
-    char profissao2[30] = "teste prof";
-    Info *i2 = factoryInfo(222222, nome2, profissao2);
+                break;
 
-    char nome3[50] = "José";
-    char profissao3[30] = "teste prof";
-    Info *i3 = factoryInfo(333333, nome3, profissao3);
+            case 3:
+                system("clear");
+                printf("Sistema de RH versão 0.01\n");
+                printf("=========================\n\n");
+                printf("Insira o CPF do funcionário a ser removido\n");
+                printf("%-10s%2s", "CPF", "> ");
+                scanf("%d", &CPF);
 
-    char nome4[50] = "Romário";
-    char profissao4[30] = "teste prof";
-    Info *i4 = factoryInfo(000100, nome4, profissao4);
+                if (searchByCPF(arvoreCPF, CPF) == NULL) {
+                    system("clear");
+                    printf("Sistema de RH versão 0.01\n");
+                    printf("=========================\n\n");
+                    printf("O CPF não esta cadastrado\n");
+                    printf("\n");
+                    printf("Digite 1 para voltar ao menu:");
+                    scanf("%d", &option);
+                } else {
+                    arvoreCPF = removeByCPF(arvoreCPF, CPF);
+                    arvoreNAME = removeByCPF(arvoreNAME, CPF);
+                    strcpy(messagens, "Funcionario removido com sucesso");
+                }
+                break;
 
-    char nome5[50] = "teste";
-    char profissao5[30] = "teste prof";
-    Info *i5 = factoryInfo(444444, nome5, profissao5);
+            case 4:
+                system("clear");
+                printf("Sistema de RH versão 0.01\n");
+                printf("=========================\n\n");
+                printf("Insira o nome do funcionário a ser procurado\n");
+                printf("%-10s%2s", "Nome", "> ");
+                scanf("%s", &nome);
 
-    char nome6[50] = "andre";
-    char profissao6[30] = "teste prof";
-    Info *i6 = factoryInfo(333330, nome6, profissao6);
+                No *tmp = searchByName(arvoreNAME, nome);
 
-    No *n1 = factoryNo(i1);
-    No *n2 = factoryNo(i2);
-    No *n3 = factoryNo(i3);
-    No *n4 = factoryNo(i4);
-    No *n5 = factoryNo(i5);
-    No *n6 = factoryNo(i6);
+                system("clear");
+                printf("Sistema de RH versão 0.01\n");
+                printf("=========================\n\n");
+                printf("%-15s  %-20s  %-15s\n", "Nome", "CPF", "Profissão");
+                printf("===============  ===================== ===============\n");
+                if (tmp == NULL) {
+                    printf("Não encontrado\n");
+                } else {
+                    printf("%-15s  %-20d  %-15s\n", tmp->info->nome, tmp->info->cpf, tmp->info->profissao);
+                }
 
-    //printf("%d", n1->info->cpf);
-    
-    No *n11 = factoryNo(i1);
-    No *n22 = factoryNo(i2);
-    No *n33 = factoryNo(i3);
-    No *n44 = factoryNo(i4);
-    No *n55 = factoryNo(i5);
-    No *n66 = factoryNo(i6);
-    
+                printf("\n");
+                printf("Digite 1 para voltar ao menu:");
+                scanf("%d", &option);
 
-    
-    arvoreCPF = insert_TreeByCPF(arvoreCPF, n11);
-    arvoreCPF = insert_TreeByCPF(arvoreCPF, n22);
-    arvoreCPF = insert_TreeByCPF(arvoreCPF, n33);
-    arvoreCPF = insert_TreeByCPF(arvoreCPF, n44);
-    arvoreCPF = insert_TreeByCPF(arvoreCPF, n55);
-    arvoreCPF = insert_TreeByCPF(arvoreCPF, n66);
+                break;
 
-    arvoreNAME = insert_TreeByName(arvoreNAME, n1);
-    arvoreNAME = insert_TreeByName(arvoreNAME, n2);
-    arvoreNAME = insert_TreeByName(arvoreNAME, n3);
-    arvoreNAME = insert_TreeByName(arvoreNAME, n4);
-    arvoreNAME = insert_TreeByName(arvoreNAME, n5);
-    arvoreNAME = insert_TreeByName(arvoreNAME, n6);
+            case 5:
+                system("clear");
+                printf("Sistema de RH versão 0.01\n");
+                printf("=========================\n\n");
+                printf("Insira o CPF do funcionário a ser procurado\n");
+                printf("%-10s%2s", "CPF", "> ");
+                scanf("%d", &CPF);
 
-    printTree(arvoreCPF);
-    printf("\n");
-    printTree(arvoreNAME);
-    
-    char nome7[50] = "andre";
+                No *no = searchByCPF(arvoreCPF, CPF);
 
-    removeByName(arvoreNAME, nome7);
-    removeByCPF(arvoreCPF,000100);
-    
-    printf("\n");
-    printTree(arvoreCPF);
-    printf("\n");
-    printTree(arvoreNAME);
+                system("clear");
+                printf("Sistema de RH versão 0.01\n");
+                printf("=========================\n\n");
+                printf("%-15s  %-20s  %-15s\n", "Nome", "CPF", "Profissão");
+                printf("===============  ====================  ===============\n");
+                if (no == NULL) {
+                    printf("Não encontrado\n");
+                } else {
+                    printf("%-15s  %-20d  %-15s\n", no->info->nome, no->info->cpf, no->info->profissao);
+                }
 
+                printf("\n");
+                printf("Digite 1 para voltar ao menu:");
+                scanf("%d", &option);
+
+                break;
+
+            case 6:
+                system("clear");
+                printf("Sistema de RH versão 0.01\n");
+                printf("=========================\n\n");
+                printf("%-15s  %-20s  %-15s\n", "Nome", "CPF", "Profissão");
+                printf("===============  ====================  ===============\n");
+
+                if (arvoreNAME == NULL) {
+                    printf("Arvore vazia\n");
+                } else {
+                    printTree(arvoreNAME);
+                }
+                printf("\n");
+                printf("Digite 1 para voltar ao menu:");
+                scanf("%d", &option);
+                break;
+        }
+    } while (option);
     return 0;
 }
 
